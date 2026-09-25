@@ -1,4 +1,4 @@
-⋆˚꩜｡ HTTP/1.1 & Binary HTTP — Network Architecture Assignment ⋆˚꩜｡
+## ⋆˚꩜｡ HTTP/1.1 & Binary HTTP — Network Architecture Assignment ⋆˚꩜｡
 
 **Ankita Tripathi**
 Roll Number: 24bcs10062
