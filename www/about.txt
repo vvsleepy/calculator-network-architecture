@@ -1,0 +1,2 @@
+This is a second, plain-text file used by the tests and by manual
+poking-around with bcurl, so that not everything served is HTML.

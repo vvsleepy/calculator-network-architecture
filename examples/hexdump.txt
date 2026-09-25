@@ -1,0 +1,109 @@
+Annotated hexdump of one complete BHP/1 request and response
+==============================================================
+
+Captured with the actual, finished implementation:
+
+    $ ./bserve ./www 9123 &
+    $ ./bcurl -v localhost:9123/index.html
+
+This file was NOT hand-written -- it is the real -v output of bcurl
+against a real bserve, copied verbatim (see the annotations added below
+each byte range).
+
+
+REQUEST (65 bytes total: 8-byte header + 57-byte payload)
+----------------------------------------------------------
+
+0000  01 01 00 00 00 00 00 39 01 00 0b 2f 69 6e 64 65  .......9.../inde
+0010  78 2e 68 74 6d 6c 03 01 00 0e 6c 6f 63 61 6c 68  x.html....localh
+0020  6f 73 74 3a 39 31 32 33 09 00 09 62 63 75 72 6c  ost:9123...bcurl
+0030  2f 31 2e 30 04 00 0a 6b 65 65 70 2d 61 6c 69 76  /1.0...keep-aliv
+0040  65                                               e
+
+  offset  size  field                     value              meaning
+  ------  ----  ------------------------  -----------------  --------------------------------
+  0x00    1     Version                   0x01               protocol version 1
+  0x01    1     Type                      0x01               TYPE_REQUEST
+  0x02    1     Flags                     0x00               reserved, unused in v1
+  0x03    1     Reserved                  0x00                must be 0
+  0x04    4     Payload Length            0x00000039 (57)    bytes from offset 0x08 onward
+  0x08    1     Method                    0x01               GET (see static method table)
+  0x09    2     Path Length               0x000b (11)        length of the path string
+  0x0b    11    Path                      "/index.html"      UTF-8, not NUL-terminated
+  0x16    1     Header Count              0x03               3 header entries follow
+  --- header 1 ---
+  0x17    1     Header 1: name id         0x01               static table id 1 = "Host"
+  0x18    2     Header 1: value length    0x000e (14)        length of the value
+  0x1a    14    Header 1: value           "localhost:9123"
+  --- header 2 ---
+  0x28    1     Header 2: name id         0x09               static table id 9 = "User-Agent"
+  0x29    2     Header 2: value length    0x0009 (9)
+  0x2b    9     Header 2: value           "bcurl/1.0"
+  --- header 3 ---
+  0x34    1     Header 3: name id         0x04               static table id 4 = "Connection"
+  0x35    2     Header 3: value length    0x000a (10)
+  0x37    10    Header 3: value           "keep-alive"
+  0x41    0     Body                      (empty)            GET has no body; frame ends here
+
+  Total payload = 1 (method) + 2 (path len) + 11 (path) + 1 (header count)
+                + [1 + 2 + 14] + [1 + 2 + 9] + [1 + 2 + 10]
+                = 1 + 2 + 11 + 1 + 17 + 12 + 13 = 57  (matches Payload Length above)
+
+
+RESPONSE (217 bytes total: 8-byte header + 209-byte payload)
+-------------------------------------------------------------
+
+0000  01 02 00 00 00 00 00 d1 00 c8 03 05 00 0a 62 73  ..............bs
+0010  65 72 76 65 2f 31 2e 30 03 00 03 31 37 35 02 00  erve/1.0...175..
+0020  09 74 65 78 74 2f 68 74 6d 6c 3c 21 64 6f 63 74  .text/html<!doct
+0030  79 70 65 20 68 74 6d 6c 3e 0a 3c 68 74 6d 6c 3e  ype html>.<html>
+0040  0a 3c 68 65 61 64 3e 3c 74 69 74 6c 65 3e 62 73  .<head><title>bs
+0050  65 72 76 65 3c 2f 74 69 74 6c 65 3e 3c 2f 68 65  erve</title></he
+0060  61 64 3e 0a 3c 62 6f 64 79 3e 0a 3c 68 31 3e 49  ad>.<body>.<h1>I
+0070  74 20 77 6f 72 6b 73 2e 3c 2f 68 31 3e 0a 3c 70  t works.</h1>.<p
+0080  3e 54 68 69 73 20 66 69 6c 65 20 69 73 20 62 65  >This file is be
+0090  69 6e 67 20 73 65 72 76 65 64 20 62 79 20 62 73  ing served by bs
+00a0  65 72 76 65 20 6f 76 65 72 20 74 68 65 20 42 48  erve over the BH
+00b0  50 2f 31 20 62 69 6e 61 72 79 20 70 72 6f 74 6f  P/1 binary proto
+00c0  63 6f 6c 2e 3c 2f 70 3e 0a 3c 2f 62 6f 64 79 3e  col.</p>.</body>
+00d0  0a 3c 2f 68 74 6d 6c 3e 0a                       .</html>.
+
+  offset  size  field                     value                  meaning
+  ------  ----  ------------------------  ---------------------  --------------------------------
+  0x00    1     Version                   0x01                   protocol version 1
+  0x01    1     Type                      0x02                   TYPE_RESPONSE
+  0x02    1     Flags                     0x00                   reserved
+  0x03    1     Reserved                  0x00                   must be 0
+  0x04    4     Payload Length            0x000000d1 (209)       bytes from offset 0x08 onward
+  0x08    2     Status Code               0x00c8 (200)           200 OK
+  0x0a    1     Header Count              0x03                   3 header entries follow
+  --- header 1 ---
+  0x0b    1     Header 1: name id         0x05                   static id 5 = "Server"
+  0x0c    2     Header 1: value length    0x000a (10)
+  0x0e    10    Header 1: value           "bserve/1.0"
+  --- header 2 ---
+  0x18    1     Header 2: name id         0x03                   static id 3 = "Content-Length"
+  0x19    2     Header 2: value length    0x0003 (3)
+  0x1b    3     Header 2: value           "175"
+  --- header 3 ---
+  0x1e    1     Header 3: name id         0x02                   static id 2 = "Content-Type"
+  0x1f    2     Header 3: value length    0x0009 (9)
+  0x21    9     Header 3: value           "text/html"
+  0x2a    175   Body                      <html>...</html>       exact bytes of www/index.html
+
+  Total payload = 2 (status) + 1 (header count)
+                + [1+2+10] + [1+2+3] + [1+2+9]
+                + 175 (body)
+                = 2 + 1 + 13 + 6 + 12 + 175 = 209  (matches Payload Length above)
+
+
+Note on framing safety
+-----------------------
+Every field above that this document could get wrong (a header
+mis-parsed, a status misread) is still bounded by the one field that
+cannot be wrong: Payload Length at offset 0x04. A receiver reads
+exactly that many bytes before it ever looks at what is inside them.
+That is why a malformed payload degrades to "we understood the
+envelope, not the contents" (-> 400) instead of desynchronising the
+whole TCP stream, and it is why a frame of a type the receiver has
+never heard of can still be skipped byte-for-byte without guessing.
